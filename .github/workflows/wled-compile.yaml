@@ -1,5 +1,4 @@
   name: WLED compile
-
 on:
     workflow_dispatch:
 
