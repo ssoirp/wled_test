@@ -1,4 +1,4 @@
-name: WLED compile
+  name: WLED compile
 
 on:
     workflow_dispatch:
@@ -24,14 +24,14 @@ jobs:
       run: |
         rm -rf /tmp/WLEDtemp/* || true
         mkdir -p /tmp/WLEDtemp
-        wget https://api.github.com/repos/MoonModules/WLED/zipball/v0.14.1-beta.32 -O /tmp/WLEDtemp/mm.zip
+        wget https://api.github.com/repos/MoonModules/WLED/zipball/v0.14.0.b27 -O /tmp/WLEDtemp/mm.zip
         unzip /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
         find /tmp/WLEDtemp -maxdepth 1 -mindepth 1 -name "*" -type d >> /tmp/WLEDtemp/wledfoldername
         cd `cat /tmp/WLEDtemp/wledfoldername`
         npm install
         echo '[env:custom_build]' >>platformio.ini
         echo 'extends = env:esp32S3_8MB_M' >>platformio.ini
-        echo 'build_flags = ${env:esp32S3_8MB_M.build_flags} -D CLIENT_SSID='\''"Sercomm4EE2"'\'' -D CLIENT_PASS='\''"86ZJ6CXW3DS39F"'\'' -D WLED_AP_SSID='\''""'\'' -D WLED_AP_PASS='\''""'\'' -D USERMOD_AUTO_SAVE -D USERMOD_FOUR_LINE_DISPLAY -D RGB_ROTARY_ENCODER -D USERMOD_ADS1115 -D USERMOD_SEVEN_SEGMENT -D USERMOD_SSDR' >>platformio.ini
+        echo 'build_flags = ${env:esp32S3_8MB_M.build_flags} ${common.debug_flags} -D SR_DEBUG -D WLED_USE_ETHERNET -D WLED_AP_SSID_UNIQUE -D WLED_ENABLE_PIXART -D CLIENT_SSID='\''"Sercomm4EE2"'\'' -D CLIENT_PASS='\''"86ZJ6CXW3DS39F"'\'' -D WLED_AP_SSID='\''""'\'' -D WLED_AP_PASS='\''""'\'' -D USERMOD_AUTO_SAVE -D USERMOD_FOUR_LINE_DISPLAY -D USERMOD_RTC -D RGB_ROTARY_ENCODER -D USERMOD_ADS1115 -D USERMOD_SEVEN_SEGMENT -D USERMOD_SSDR' >>platformio.ini
         echo 'lib_deps = ' >>platformio.ini
         echo '  ${env:esp32S3_8MB_M.lib_deps}' >>platformio.ini
         echo '  olikraus/U8g2 @ ^2.28.8' >>platformio.ini
