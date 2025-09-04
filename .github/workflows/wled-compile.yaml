@@ -39,9 +39,9 @@ jobs:
             ~/.platformio/tool-cache
           key: pio-${{ runner.os }}-${{ hashFiles('**/platformio.ini', '**/platformio_override.ini') }}
           restore-keys: |
-            pio-${{ runner.os }}
+            pio-${{ runner.os }}-
 
-       - name: Create platformio_override.ini per al Nano ESP32
+      - name: Create platformio_override.ini per al Nano ESP32
         run: |
           {
             echo '[platformio]';
@@ -68,7 +68,6 @@ jobs:
             echo 'build_unflags = -D WLED_RELEASE_NAME';
           } > platformio_override.ini
 
-
       - name: Build (Nano ESP32)
         run: |
           pio run -e nano_esp32
@@ -85,4 +84,3 @@ jobs:
           name: wled-0.15-nano-esp32
           path: artifacts/nano_esp32/*.bin
           if-no-files-found: error
-
