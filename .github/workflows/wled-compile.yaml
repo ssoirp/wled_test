@@ -54,6 +54,8 @@ jobs:
             echo 'build_flags = ${esp32.build_flags} ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM';
             echo 'board_build.flash_size = 16MB';
             echo 'board_build.partitions = default_16MB.csv';
+            echo 'board_build.flash_mode = dio';
+            echo 'board_build.f_flash = 80m';
             echo 'lib_deps =';
             echo '  ${esp32.lib_deps}';
             echo '  ${esp32.AR_lib_deps}';
