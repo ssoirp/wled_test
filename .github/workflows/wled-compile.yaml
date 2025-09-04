@@ -1,88 +1,22 @@
-name: Build WLED 0.15 for Nano ESP32
+name: WLED compile
 
 on:
-  workflow_dispatch:
-  push:
-    branches: [ main, master ]
-  pull_request:
+    workflow_dispatch:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout WLED v0.15.1 (repo oficial)
-        uses: actions/checkout@v4
-        with:
-          repository: Aircoookie/WLED
-          ref: v0.15.1
-          submodules: recursive
-          fetch-depth: 1
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      - name: Install PlatformIO
-        run: |
-          python -m pip install --upgrade pip
-          pip install platformio
-
-      - name: Cache PlatformIO
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.platformio/.cache
-            ~/.platformio/packages
-            ~/.platformio/platforms
-            ~/.platformio/tool-cache
-          key: pio-${{ runner.os }}-${{ hashFiles('**/platformio.ini', '**/platformio_override.ini') }}
-          restore-keys: |
-            pio-${{ runner.os }}-
-
-      - name: Create platformio_override.ini per al Nano ESP32
-        run: |
-         {
-              echo '[platformio]';
-              echo 'default_envs = nano_esp32';
-              echo '';
-              echo '[env:nano_esp32]';
-              # ⬇️ Pina la plataforma a 6.6.x (core 2.x)
-              echo 'platform = espressif32@~6.6.0';
-              echo 'board = arduino_nano_esp32';
-              echo 'framework = arduino';
-            
-              # flags de WLED + AR + el teu ADC
-              echo 'build_flags = ${esp32.build_flags} ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM';
-            
-              echo 'board_build.flash_size = 16MB';
-              echo 'board_build.partitions = default_16MB.csv';
-              echo 'board_build.flash_mode = dio';
-              echo 'board_build.f_flash = 80000000';
-            
-              echo 'lib_deps =';
-              echo '  ${esp32.lib_deps}';
-              echo '  ${esp32.AR_lib_deps}';
-              echo '  adafruit/Adafruit ADS1X15 @ 2.4.0';
-            
-              echo 'build_unflags = -D WLED_RELEASE_NAME';
-            } > platformio_override.ini
-
-      - name: Build (Nano ESP32)
-        run: |
-          pio run -e nano_esp32
-
-      - name: Collect binaries
-        if: always()
-        run: |
-          mkdir -p artifacts/nano_esp32
-          find .pio/build/nano_esp32 -maxdepth 1 -type f -name "*.bin" -print -exec cp {} artifacts/nano_esp32/ \;
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: wled-0.15-nano-esp32
-          path: artifacts/nano_esp32/*.bin
-          if-no-files-found: error
-
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install --upgrade platformio
+        git rm -r $GITHUB_WORKSPACE/*.bin || true
