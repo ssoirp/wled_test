@@ -1,59 +1,70 @@
-name: WLED compile
+name: Build WLED 0.15 for Nano ESP32
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.9
 
-    - name: Install PlatformIO
-      run: |
-        python -m pip install --upgrade pip
-        pip install --upgrade platformio
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-    - name: Run PlatformIO
-      run: |
-        rm -rf /tmp/WLEDtemp/* || true
-        mkdir -p /tmp/WLEDtemp
-        wget https://api.github.com/repos/wled/WLED/zipball/v0.15.1 -O /tmp/WLEDtemp/mm.zip
-        unzip /tmp/WLEDtemp/mm.zip -d /tmp/WLEDtemp
-        find /tmp/WLEDtemp -maxdepth 1 -mindepth 1 -name "*" -type d >> /tmp/WLEDtemp/wledfoldername
-        cd `cat /tmp/WLEDtemp/wledfoldername`
-        npm install
-        echo '[env:custom_build]' >>platformio.ini
-        echo 'extends = env:esp32dev_8M' >>platformio.ini
-        echo 'build_flags = ${env:esp32dev_8M.build_flags} ${esp32.AR_build_flags} -D USERMOD_ADS1115' >>platformio.ini
-        echo 'lib_deps = ' >>platformio.ini
-        echo '  ${env:esp32dev_8M.lib_deps}' >>platformio.ini
-        echo '  ${esp32.AR_lib_deps}' >>platformio.ini
-        echo '  adafruit/Adafruit BusIO @ 1.13.2' >>platformio.ini
-        echo '  adafruit/Adafruit ADS1X15 @ 2.4.0' >>platformio.ini
-        echo '  adafruit/Adafruit Unified Sensor' >>platformio.ini
-        
-        echo 'build_unflags= -D WLED_RELEASE_NAME' >>platformio.ini
-        pio run -e custom_build || pio run -e custom_build
-    - name: Copy Files
-      run: |
-        cd $GITHUB_WORKSPACE
-        git rm -r $GITHUB_WORKSPACE/*.bin || true
-        WLEDFOLDERNAME=`cat /tmp/WLEDtemp/wledfoldername`
-        cp ${WLEDFOLDERNAME}/build_output/firmware/custom_build.bin $GITHUB_WORKSPACE/
-        date -I | tr -d '\n' >$GITHUB_WORKSPACE/last_update_date.txt
-    - name: Commit Files
-      run: |
-        cd $GITHUB_WORKSPACE
-        git config user.name "GitHub Actions Bot"
-        git config user.email "<>"
-        git add $GITHUB_WORKSPACE/custom_build.bin
-        git add $GITHUB_WORKSPACE/last_update_date.txt
-        git commit -m "Commit Custom Build"
-        git push origin main
+    steps:
+      - name: Checkout WLED v0.15.1
+        uses: actions/checkout@v4
+        with:
+          ref: v0.15.1   # Pots canviar-ho a v0.15.0 si vols exactament la 0.15.0
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio/.cache
+            ~/.platformio/packages
+            ~/.platformio/platforms
+            ~/.platformio/tool-cache
+          key: pio-${{ runner.os }}-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            pio-${{ runner.os }}-
+
+      - name: Create custom platformio.ini for Nano ESP32
+        run: |
+          echo '[env:custom_build]' > platformio.ini
+          echo 'platform = espressif32' >> platformio.ini
+          echo 'board = arduino_nano_esp32' >> platformio.ini
+          echo 'framework = arduino' >> platformio.ini
+          echo 'build_flags = ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM' >> platformio.ini
+          echo 'board_build.flash_size = 16MB' >> platformio.ini
+          echo 'lib_deps =' >> platformio.ini
+          echo '  ${esp32.AR_lib_deps}' >> platformio.ini
+          echo '  adafruit/Adafruit ADS1X15 @ 2.4.0' >> platformio.ini
+          echo 'build_unflags = -D WLED_RELEASE_NAME' >> platformio.ini
+
+      - name: Build (Nano ESP32)
+        run: |
+          pio run -e custom_build
+
+      - name: Collect binaries
+        if: always()
+        run: |
+          mkdir -p artifacts/nano_esp32
+          find .pio/build/custom_build -maxdepth 1 -type f -name "*.bin" -print -exec cp {} artifacts/nano_esp32/ \;
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wled-0.15-nano-esp32
+          path: artifacts/nano_esp32/*.bin
+          if-no-files-found: error
