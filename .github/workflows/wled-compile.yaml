@@ -51,20 +51,13 @@ jobs:
             echo 'platform = espressif32';
             echo 'board = arduino_nano_esp32';
             echo 'framework = arduino';
-            # Afegeix també els build_flags base d'ESP32 a més dels d'AR
             echo 'build_flags = ${esp32.build_flags} ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM';
             echo 'board_build.flash_size = 16MB';
             echo 'board_build.partitions = default_16MB.csv';
             echo 'lib_deps =';
-            # Hereta totes les lib d’ESP32 que ja defineix WLED (inclou AsyncTCP, ESPAsyncWebServer, etc.)
             echo '  ${esp32.lib_deps}';
-            # Afegeix les d’Audio Reactive
             echo '  ${esp32.AR_lib_deps}';
-            # El teu ADC
             echo '  adafruit/Adafruit ADS1X15 @ 2.4.0';
-            # (Opcional) reforç explícit — no sobra si ja ve via ${esp32.lib_deps}
-            echo '  me-no-dev/AsyncTCP @ ^1.1.1';
-            echo '  esphome/ESPAsyncWebServer @ ^3.1.0';
             echo 'build_unflags = -D WLED_RELEASE_NAME';
           } > platformio_override.ini
 
@@ -84,3 +77,4 @@ jobs:
           name: wled-0.15-nano-esp32
           path: artifacts/nano_esp32/*.bin
           if-no-files-found: error
+
