@@ -14,8 +14,8 @@ jobs:
       - name: Checkout WLED v0.15.1 (repo oficial)
         uses: actions/checkout@v4
         with:
-          repository: Aircoookie/WLED     # <-- repo oficial
-          ref: v0.15.1                    # <-- etiqueta que vols
+          repository: Aircoookie/WLED
+          ref: v0.15.1
           submodules: recursive
           fetch-depth: 1
 
@@ -43,19 +43,22 @@ jobs:
 
       - name: Create platformio_override.ini per al Nano ESP32
         run: |
-          echo 'default_envs = nano_esp32' > platformio_override.ini
-          echo '' >> platformio_override.ini
-          echo '[env:nano_esp32]' >> platformio_override.ini
-          echo 'platform = espressif32' >> platformio_override.ini
-          echo 'board = arduino_nano_esp32' >> platformio_override.ini
-          echo 'framework = arduino' >> platformio_override.ini
-          echo 'build_flags = ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM' >> platformio_override.ini
-          echo 'board_build.flash_size = 16MB' >> platformio_override.ini
-          echo 'board_build.partitions = default_16MB.csv' >> platformio_override.ini
-          echo 'lib_deps =' >> platformio_override.ini
-          echo '  ${esp32.AR_lib_deps}' >> platformio_override.ini
-          echo '  adafruit/Adafruit ADS1X15 @ 2.4.0' >> platformio_override.ini
-          echo 'build_unflags = -D WLED_RELEASE_NAME' >> platformio_override.ini
+          {
+            echo '[platformio]';
+            echo 'default_envs = nano_esp32';
+            echo '';
+            echo '[env:nano_esp32]';
+            echo 'platform = espressif32';
+            echo 'board = arduino_nano_esp32';
+            echo 'framework = arduino';
+            echo 'build_flags = ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM';
+            echo 'board_build.flash_size = 16MB';
+            echo 'board_build.partitions = default_16MB.csv';
+            echo 'lib_deps =';
+            echo '  ${esp32.AR_lib_deps}';
+            echo '  adafruit/Adafruit ADS1X15 @ 2.4.0';
+            echo 'build_unflags = -D WLED_RELEASE_NAME';
+          } > platformio_override.ini
 
       - name: Build (Nano ESP32)
         run: |
