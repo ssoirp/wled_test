@@ -39,9 +39,9 @@ jobs:
             ~/.platformio/tool-cache
           key: pio-${{ runner.os }}-${{ hashFiles('**/platformio.ini', '**/platformio_override.ini') }}
           restore-keys: |
-            pio-${{ runner.os }}-
+            pio-${{ runner.os }}
 
-            - name: Create platformio_override.ini per al Nano ESP32
+       - name: Create platformio_override.ini per al Nano ESP32
         run: |
           {
             echo '[platformio]';
