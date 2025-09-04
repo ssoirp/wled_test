@@ -43,24 +43,31 @@ jobs:
 
       - name: Create platformio_override.ini per al Nano ESP32
         run: |
-          {
-            echo '[platformio]';
-            echo 'default_envs = nano_esp32';
-            echo '';
-            echo '[env:nano_esp32]';
-            echo 'platform = espressif32';
-            echo 'board = arduino_nano_esp32';
-            echo 'framework = arduino';
-            echo 'build_flags = ${esp32.build_flags} ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM';
-            echo 'board_build.flash_size = 16MB';
-            echo 'board_build.partitions = default_16MB.csv';
-            echo 'board_build.flash_mode = dio';
-            echo 'lib_deps =';
-            echo '  ${esp32.lib_deps}';
-            echo '  ${esp32.AR_lib_deps}';
-            echo '  adafruit/Adafruit ADS1X15 @ 2.4.0';
-            echo 'build_unflags = -D WLED_RELEASE_NAME';
-          } > platformio_override.ini
+         {
+              echo '[platformio]';
+              echo 'default_envs = nano_esp32';
+              echo '';
+              echo '[env:nano_esp32]';
+              # ⬇️ Pina la plataforma a 6.6.x (core 2.x)
+              echo 'platform = espressif32@~6.6.0';
+              echo 'board = arduino_nano_esp32';
+              echo 'framework = arduino';
+            
+              # flags de WLED + AR + el teu ADC
+              echo 'build_flags = ${esp32.build_flags} ${esp32.AR_build_flags} -D USERMOD_ADS1115 -DBOARD_HAS_PSRAM';
+            
+              echo 'board_build.flash_size = 16MB';
+              echo 'board_build.partitions = default_16MB.csv';
+              echo 'board_build.flash_mode = dio';
+              echo 'board_build.f_flash = 80000000';
+            
+              echo 'lib_deps =';
+              echo '  ${esp32.lib_deps}';
+              echo '  ${esp32.AR_lib_deps}';
+              echo '  adafruit/Adafruit ADS1X15 @ 2.4.0';
+            
+              echo 'build_unflags = -D WLED_RELEASE_NAME';
+            } > platformio_override.ini
 
       - name: Build (Nano ESP32)
         run: |
