@@ -1,0 +1,9 @@
+[env:custom_build]
+extends = env:esp32dev_8M
+build_flags = ${env:esp32dev_8M.build_flags} ${esp32.AR_build_flags} -D USERMOD_ADS1115
+lib_deps = 
+  ${env:esp32dev_8M.lib_deps}
+  ${esp32.AR_lib_deps}
+  adafruit/Adafruit BusIO @ 1.13.2
+  adafruit/Adafruit ADS1X15 @ 2.4.0
+  adafruit/Adafruit Unified Sensor
